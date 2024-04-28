@@ -1,3 +1,5 @@
 sqlalchemy
 sqlalchemy_utils
 psycopg2
+pydantic
+pydantic_settings

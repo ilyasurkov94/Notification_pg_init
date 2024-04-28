@@ -1,15 +1,15 @@
 import logging
 
-from sqlalchemy import create_engine, inspect
-from sqlalchemy_utils import database_exists, create_database
-
 from config import settings
 from models import Base
+from sqlalchemy import create_engine, inspect
+from sqlalchemy_utils import create_database, database_exists
 
 
 def main():
     pg_conn_url = settings.postgres.conn_url
-
+    print(pg_conn_url)
+    logging.info(pg_conn_url)
     if not database_exists(pg_conn_url):
         logging.info("Database doesn't exist")
         try:
@@ -34,4 +34,12 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        filename='log.log',
+        filemode='w+'
+    )
+
+
     main()

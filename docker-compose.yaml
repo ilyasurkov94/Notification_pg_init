@@ -7,7 +7,7 @@ services:
     image: postgres:13
     restart: always
     env_file:
-      - ../../.env
+      - /.env
     ports: 
       - '${NOTIFICATION_DB_EXPOSED_PORT}:${NOTIFICATION_DB_INTERRIOR_PORT}'
     command: -p ${NOTIFICATION_DB_INTERRIOR_PORT}
@@ -24,7 +24,7 @@ services:
   postgres_init:
     container_name: postgres_init
     build: ./pg_init
-    env_file: .env
+    env_file: /.env
     depends_on:
       postgres:
         condition: service_started

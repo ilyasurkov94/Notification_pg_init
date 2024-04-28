@@ -1,12 +1,11 @@
-from enum import Enum
-from uuid import UUID, uuid4
-from typing import List
 from datetime import datetime as dt
+from enum import Enum
+from typing import List
+from uuid import UUID, uuid4
 
-from sqlalchemy.orm import relationship, Mapped, mapped_column, types
-from sqlalchemy import String, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, types
 from sqlalchemy.ext.declarative import declarative_base
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 Base = declarative_base()
 
@@ -15,9 +14,11 @@ class DeliveryType(Enum):
     delayed = "delayed"
     instant = "instant"
 
+
 class NotificationType(Enum):
     like = "like"
-    news = "news" 
+    news = "news"
+
 
 class NotificationStatus(Enum):
     not_sended = "not_sended"
@@ -31,7 +32,7 @@ class Notifications(Base):
         types.Uuid,
         primary_key=True,
         index=True,
-        default_factory=uuid4
+        default=uuid4
     )
 
     user_id: Mapped[UUID] = mapped_column(types.Uuid, nullable=False, unique=False)
@@ -52,7 +53,7 @@ class AggregatedNotifications(Base):
         types.Uuid,
         primary_key=True,
         index=True,
-        default_factory=uuid4
+        default=uuid4
     )
 
     user_id: Mapped[UUID] = mapped_column(types.Uuid, nullable=False, unique=False)
@@ -72,7 +73,7 @@ class TemplateVariables(Base):
         types.Uuid,
         primary_key=True,
         index=True,
-        default_factory=uuid4
+        default=uuid4
     )
     
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
@@ -88,10 +89,10 @@ class Templates(Base):
         types.Uuid,
         primary_key=True,
         index=True,
-        default_factory=uuid4
+        default=uuid4
     )
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    body: Mapped[str] = mapped_column(Text, nullable=False, uniqie=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False, unique=False)
 
     variables: Mapped[List["TemplateVariables"]] = relationship(
         back_populates="template", cascade='all, delete')
@@ -106,7 +107,7 @@ class UserNotificationSettings(Base):
         types.Uuid,
         primary_key=True,
         index=True,
-        default_factory=uuid4
+        default=uuid4
     )
     user_id: Mapped[UUID] = mapped_column(types.Uuid, nullable=False, unique=False)
     notification_type: Mapped[NotificationType]

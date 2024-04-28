@@ -1,15 +1,5 @@
-import os
-from logging import config as logging_config
-from pathlib import Path
-
-from dotenv import find_dotenv, load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings
-
-from .logger import LOGGING
-
-logging_config.dictConfig(LOGGING)
-load_dotenv(find_dotenv())
 
 
 class PostgresSettings(BaseSettings):
@@ -30,16 +20,17 @@ class PostgresSettings(BaseSettings):
         description="Порт Postgres для сервиса оповещений",
     )
     postgres_database: str = Field(
-        default="auth",
+        default="base",
         description="База данных для хранения информации об оповещениях",
     )
 
     @property
     def conn_url(self):
-        return f'postgresql+psycopg2://\
-            {self.postgres_user}:{self.postgres_pass}\
-            @{self.postgres_host}:{self.postgres_port}/{self.postgres_database}'
-
+        return (
+            f'postgresql+psycopg2://'
+            f'{self.postgres_user}:{self.postgres_pass}'
+            f'@{self.postgres_host}:{self.postgres_port}/{self.postgres_database}'
+        )
 
 class Settings(BaseSettings):
     postgres: PostgresSettings = PostgresSettings()

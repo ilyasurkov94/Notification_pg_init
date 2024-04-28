@@ -1,0 +1,142 @@
+@startuml system-context
+'!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' LAYOUT_TOP_DOWN()
+' LAYOUT_WITH_LEGEND()
+
+person UserEmail
+component NotificationService as "NotificationService" #CCE5FF
+component Frontend
+component SchedulerForAggrNotifications #CCE5FF
+component AdminServicej
+
+
+package SecureZone{
+    component EmailSenderService #CCE5FF
+    database Users #FFCC99 [
+        Users
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        user_id: uuid
+        ....
+        email: str
+    ]
+
+    database UserCacheDB #FFCC99 [
+        UserCacheDB
+        ====
+        key: user_id
+        ....
+        value: email
+    ]
+}
+
+package Database {
+    database Notifications #FFCC99 [
+        Notifications
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        user_id: uuid (ForeignKey)
+        ....
+        template_id: uuid (ForeignKey)
+        ....
+        notify_at: datetime
+        ....
+        notification_dt: datetime
+        ....
+        delivery_type: Enum
+        ....
+        type: Enum
+        ....
+        status: Enum
+    ]
+    database Aggr_Notifications #FFCC99 [
+        Aggr_Notifications
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        user_id: uuid
+        ....
+        notification_type: Enum
+        ....
+        notification_dt: datetime
+    ]
+    database Templates #FFCC99 [
+        Templates
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        name: string
+        ....
+        body: string
+    ]
+    database TemplateVariables #FFCC99 [
+        TemplateVariables
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        name: string
+        ....
+        type: string
+        ....
+        template_id: uuid (ForeignKey)
+    ]
+    database UserNotificationSettings #FFCC99 [
+        UserNotificationSettings
+        ====
+        id: uuid (PrimarKey, Index)
+        ....
+        user_id: string
+        ....
+        notification_type: Enum
+        ....
+        allowed: bool
+    ]
+}
+
+
+'consumers
+component BasicConsumer as "BasicConsumer.\n Aggrs note -> Agg_Notification\nOthers -> EmailSenderService"#FFFF99
+component ResultConsumer #FFFF99
+
+package "RabbitMQ" #ADD1B2 {
+    queue Delayed
+    queue Instant
+    queue NotificationStatus
+}
+Frontend --> NotificationService
+
+
+
+'basic notifications
+NotificationService -down-> Instant
+
+NotificationService -[#9933FF]-> UserNotificationSettings :1 check user settings
+NotificationService -[#9933FF]right-> Notifications :2 save delayed & instant notification data
+NotificationService -[#9933FF]down-> Delayed :3
+Delayed -[#9933FF]right-> Instant :4
+Instant -[#9933FF]down-> BasicConsumer :5
+BasicConsumer -[#9933FF]down-> EmailSenderService :6
+EmailSenderService -[#9933FF]up-> UserNotificationSettings :7
+EmailSenderService -[#9933FF]left-> Templates :8
+EmailSenderService -[#9933FF]-> UserCacheDB :9
+EmailSenderService -[#9933FF]-> Users :10
+EmailSenderService -[#9933FF]> UserEmail :11
+EmailSenderService -[#9933FF]-> NotificationStatus :12
+NotificationStatus -up[#9933FF]-> ResultConsumer :13
+ResultConsumer -[#9933FF]-> Notifications :14 set new status
+
+
+'scheduler
+SchedulerForAggrNotifications -[#00FFFF]> Aggr_Notifications :1
+SchedulerForAggrNotifications -[#00FFFF]> Templates :2
+SchedulerForAggrNotifications -[#00FFFF]-> EmailSenderService :3
+SchedulerForAggrNotifications -[#00FFFF]-> NotificationStatus :4
+
+'админка
+AdminService --> NotificationService : любой запрос
+AdminService --> Templates : CRUD шаблонов и переменных
+'hide @unlinked
+@enduml

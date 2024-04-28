@@ -1,0 +1,40 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres_notifications
+    hostname: postgres_notifications
+    image: postgres:13
+    restart: always
+    env_file:
+      - ../../.env
+    ports: 
+      - '${NOTIFICATION_DB_EXPOSED_PORT}:${NOTIFICATION_DB_INTERRIOR_PORT}'
+    command: -p ${NOTIFICATION_DB_INTERRIOR_PORT}
+    environment:
+      POSTGRES_USER: ${NOTIFICATION_DB_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - postgres_notifications_vol:/var/lib/postgres/data
+    networks:
+      - notification_network
+
+  postgres_init:
+    container_name: postgres_init
+    build: ./pg_init
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - notification_network
+
+networks:
+  notification_network:
+    name: notification_network
+    driver: bridge
+
+volumes:
+  postgres_notifications_vol:

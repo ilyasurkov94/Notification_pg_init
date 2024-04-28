@@ -1,6 +1,23 @@
 version: '3.5'
 
-services:
+services:  
+  rabbit_mq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbit_mq
+    container_name: rabbit_mq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648
+    volumes:
+      - rabbit_mq_vol:/var/lib/rabbitmq
+    ports:
+      - "${RABBITMQ_FIRST_OPEN_PORT}:${RABBITMQ_FIRST_INTERIOR_PORT}"
+      - "${RABBITMQ_SECONDT_OPEN_PORT}:${RABBITMQ_SECOND_INTERIOR_PORT}"
+    networks: 
+      - notification_network
+
   postgres:
     container_name: postgres_notifications
     hostname: postgres_notifications
@@ -38,3 +55,6 @@ networks:
 
 volumes:
   postgres_notifications_vol:
+  rabbit_mq_vol:
+
+
